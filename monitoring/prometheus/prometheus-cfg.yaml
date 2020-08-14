@@ -234,3 +234,9 @@ data:
         action: replace
         target_label: __scheme__
         regex: (.+)
+    # 以下内容为SpringBoot应用配置()
+#    - job_name: 'springboot_prometheus'
+#      scrape_interval: 5s
+#      metrics_path: '/actuator/prometheus'
+#      kubernetes_sd_configs:
+#      - role: endpoints
