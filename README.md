@@ -1,4 +1,4 @@
-# Autoscaling Spring Boot with the Horizontal Pod Autoscaler and custom metrics on Kubernetes
+# 使用水平Pod自动缩放器和Kubernetes上的自定义指标自动缩放Spring Boot
 
 ## Prerequisites
 
