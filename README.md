@@ -33,13 +33,13 @@ After one minute the metric-server starts reporting CPU and memory usage for nod
 View nodes metrics:
 
 ```bash
-kubectl get --raw "/apis/metrics.k8s.io/v1beta1/nodes" | jq .
+kubectl get --raw "/apis/metrics.k8s.io/v1/nodes" | jq .
 ```
 
 View pods metrics:
 
 ```bash
-kubectl get --raw "/apis/metrics.k8s.io/v1beta1/pods" | jq .
+kubectl get --raw "/apis/metrics.k8s.io/v1/pods" | jq .
 ```
 
 Create the monitoring namespace:
@@ -63,7 +63,7 @@ kubectl create -f monitoring/custom-metrics-api
 List the custom metrics provided by Prometheus:
 
 ```bash
-kubectl get --raw "/apis/custom.metrics.k8s.io/v1beta1" | jq .
+kubectl get --raw "/apis/custom.metrics.k8s.io/v1" | jq .
 ```
 
 ## Package the application
@@ -92,7 +92,7 @@ You can post messages to the queue by via http://minkube_ip:32000/submit?quantit
 You should be able to see the number of pending messages from http://minkube_ip:32000/metrics and from the custom metrics endpoint:
 
 ```bash
-kubectl get --raw "/apis/custom.metrics.k8s.io/v1beta1/namespaces/default/pods/*/messages" | jq .
+kubectl get --raw "/apis/custom.metrics.k8s.io/v1/namespaces/default/pods/*/messages" | jq .
 ```
 
 ## Autoscaling workers
