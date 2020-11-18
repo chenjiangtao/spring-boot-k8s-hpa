@@ -14,6 +14,20 @@
 #
 
 
+
+#kubectl create namespace kubernetes-dashboard
+#kubectl create secret generic kubernetes-dashboard-certs --from-file=/root/certs/new-for-dashboard -n kubernetes-dashboard
+#  /root/certs/new-for-dashboard 放自己的x509的crt证书文件
+# x509的crt证书文件参考：
+#openssl genrsa -des3 -passout pass:over4chars -out dashboard.pass.key 2048
+#openssl rsa -passin pass:over4chars -in dashboard.pass.key -out dashboard.key
+#生成证书请求
+#openssl req -new -key dashboard.key -out dashboard.csr
+#自签名（本地服务器网络使用）
+#openssl x509 -req -sha256 -days 365 -in dashboard.csr -signkey dashboard.key -out dashboard.crt
+
+
+
 #apiVersion: v1
 #kind: Namespace
 #metadata:
