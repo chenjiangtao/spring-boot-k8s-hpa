@@ -214,7 +214,7 @@ data:
 
 
 
-    # ！！！！！ pod的另一种配法， 这种配置没用 ！！！！
+    # ！！！！！ pod的另一种配法， 这种配置不起作用 ！！！！
     # Example scrape config for pods
     #
     # The relabeling allows the actual pod scrape endpoint to be configured via the
