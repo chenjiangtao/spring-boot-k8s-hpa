@@ -14,11 +14,12 @@ rules:
   verbs: ["get", "list", "watch"]
 - apiGroups:
   - extensions
-  - apps
+  - apps #最新官方示例中没加这条
+  - networking.k8s.io
   resources:
   - ingresses
   verbs: ["get", "list", "watch"]
-- nonResourceURLs: ["/metrics"]
+- nonResourceURLs: ["/metrics","/metrics/cadvisor"]
   verbs: ["get"]
 ---
 apiVersion: v1
