@@ -22,6 +22,8 @@ data:
       static_configs:
       - targets: ['192.168.88.201:31190']
 
+
+
     - job_name: 'kubernetes-apiservers'
 
       kubernetes_sd_configs:
@@ -56,6 +58,8 @@ data:
         action: keep
         regex: default;kubernetes;https
 
+
+
     - job_name: 'kubernetes-nodes'
 
       # Default to scraping over https. If required, just disable this or change to
@@ -70,6 +74,13 @@ data:
       # <kubernetes_sd_config>.
       tls_config:
         ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        # If your node certificates are self-signed or use a different CA to the
+        # master CA, then disable certificate verification below. Note that
+        # certificate verification is an integral part of a secure infrastructure
+        # so this should only be disabled in a controlled environment. You can
+        # disable certificate verification by uncommenting the line below.
+        #
+        # insecure_skip_verify: true
       bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
 
       kubernetes_sd_configs:
@@ -78,18 +89,19 @@ data:
       relabel_configs:
       - action: labelmap
         regex: __meta_kubernetes_node_label_(.+)
-      - target_label: __address__
-        replacement: kubernetes.default.svc:443
-      - source_labels: [__meta_kubernetes_node_name]
-        regex: (.+)
-        target_label: __metrics_path__
-        replacement: /api/v1/nodes/${1}/proxy/metrics
+
 
     - job_name: 'kubernetes-cadvisor'
 
       # Default to scraping over https. If required, just disable this or change to
       # `http`.
       scheme: https
+
+      # Starting Kubernetes 1.7.3 the cAdvisor metrics are under /metrics/cadvisor.
+      # Kubernetes CIS Benchmark recommends against enabling the insecure HTTP
+      # servers of Kubernetes, therefore the cAdvisor metrics on the secure handler
+      # are used.
+      metrics_path: /metrics/cadvisor
 
       # This TLS & bearer token file config is used to connect to the actual scrape
       # endpoints for cluster components. This is separate to discovery auth
@@ -99,6 +111,13 @@ data:
       # <kubernetes_sd_config>.
       tls_config:
         ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        # If your node certificates are self-signed or use a different CA to the
+        # master CA, then disable certificate verification below. Note that
+        # certificate verification is an integral part of a secure infrastructure
+        # so this should only be disabled in a controlled environment. You can
+        # disable certificate verification by uncommenting the line below.
+        #
+        # insecure_skip_verify: true
       bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
 
       kubernetes_sd_configs:
@@ -107,12 +126,9 @@ data:
       relabel_configs:
       - action: labelmap
         regex: __meta_kubernetes_node_label_(.+)
-      - target_label: __address__
-        replacement: kubernetes.default.svc:443
-      - source_labels: [__meta_kubernetes_node_name]
-        regex: (.+)
-        target_label: __metrics_path__
-        replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
+
+
+
 
 
     - job_name: kube-state-metrics
@@ -136,3 +152,145 @@ data:
           target_label: k8s_sname
 
 
+    - job_name: kubernetes-service-endpoints
+      kubernetes_sd_configs:
+      - role: endpoints
+      relabel_configs:
+      - action: keep
+        regex: true
+        source_labels:
+        - __meta_kubernetes_service_annotation_prometheus_io_scrape
+      - action: replace
+        regex: (https?)
+        source_labels:
+        - __meta_kubernetes_service_annotation_prometheus_io_scheme
+        target_label: __scheme__
+      - action: replace
+        regex: (.+)
+        source_labels:
+        - __meta_kubernetes_service_annotation_prometheus_io_path
+        target_label: __metrics_path__
+      - action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        source_labels:
+        - __address__
+        - __meta_kubernetes_service_annotation_prometheus_io_port
+        target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_service_label_(.+)
+      - action: replace
+        source_labels:
+        - __meta_kubernetes_namespace
+        target_label: kubernetes_namespace
+      - action: replace
+        source_labels:
+        - __meta_kubernetes_service_name
+        target_label: kubernetes_name
+
+
+
+
+
+
+
+    - job_name: 'kubernetes-services'
+
+      metrics_path: /metrics
+      params:
+        module: [http_2xx]
+
+      kubernetes_sd_configs:
+      - role: service
+
+      relabel_configs:
+      # Example relabel to probe only some services that have "example.io/should_be_probed = true" annotation
+      #  - source_labels: [__meta_kubernetes_service_annotation_example_io_should_be_probed]
+      #    action: keep
+      #    regex: true
+      - source_labels: [__address__]
+        target_label: __param_target
+      - target_label: __address__
+        replacement: localhost:9115
+      - source_labels: [__param_target]
+        target_label: instance
+      - action: labelmap
+        regex: __meta_kubernetes_service_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_service_name]
+        target_label: kubernetes_name
+
+
+
+
+    - job_name: 'kubernetes-ingresses'
+
+      metrics_path: /probe
+      params:
+        module: [http_2xx]
+
+      kubernetes_sd_configs:
+      - role: ingress
+
+      relabel_configs:
+      # Example relabel to probe only some ingresses that have "example.io/should_be_probed = true" annotation
+      #  - source_labels: [__meta_kubernetes_ingress_annotation_example_io_should_be_probed]
+      #    action: keep
+      #    regex: true
+      - source_labels: [__meta_kubernetes_ingress_scheme,__address__,__meta_kubernetes_ingress_path]
+        regex: (.+);(.+);(.+)
+        replacement: ${1}://${2}${3}
+        target_label: __param_target
+      - target_label: __address__
+        replacement: localhost:9115
+      - source_labels: [__param_target]
+        target_label: instance
+      - action: labelmap
+        regex: __meta_kubernetes_ingress_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_ingress_name]
+        target_label: kubernetes_name
+
+
+    # ！！！！！！！！ 与上面的 kube-state-metrics 监控冲突了，因为也会扫到8080和8081的端口 ！！！！！！！！！！！
+    # Example scrape config for pods
+    #
+    # The relabeling allows the actual pod scrape to be configured
+    # for all the declared ports (or port-free target if none is declared)
+    # or only some ports.
+    - job_name: 'kubernetes-pods'
+
+      kubernetes_sd_configs:
+      - role: pod
+
+      relabel_configs:
+      # Example relabel to scrape only pods that have
+      # "example.io/should_be_scraped = true" annotation.
+      #  - source_labels: [__meta_kubernetes_pod_annotation_example_io_should_be_scraped]
+      #    action: keep
+      #    regex: true
+      #
+      # Example relabel to customize metric path based on pod
+      # "example.io/metric_path = <metric path>" annotation.
+      #  - source_labels: [__meta_kubernetes_pod_annotation_example_io_metric_path]
+      #    action: replace
+      #    target_label: __metrics_path__
+      #    regex: (.+)
+      #
+      # Example relabel to scrape only single, desired port for the pod
+      # based on pod "example.io/scrape_port = <port>" annotation.
+      #  - source_labels: [__address__, __meta_kubernetes_pod_annotation_example_io_scrape_port]
+      #    action: replace
+      #    regex: ([^:]+)(?::\d+)?;(\d+)
+      #    replacement: $1:$2
+      #    target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: kubernetes_pod_name
