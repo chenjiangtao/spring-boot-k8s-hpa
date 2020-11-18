@@ -1,4 +1,4 @@
-metrics-server/目录下的不再使用
+# metrics-server/目录下的不再使用
 
 metrics-server-3.6.yaml 可直接运行
 metrics-server-eipwork-v3.7.yaml  可直接运行
