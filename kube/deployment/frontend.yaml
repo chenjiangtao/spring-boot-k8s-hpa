@@ -42,9 +42,34 @@ metadata:
   name: frontend
 spec:
   ports:
-  - nodePort: 32000
+  - name: low
     port: 80
+    targetPort: 8080
+  - name: high
+    port: 8080
     targetPort: 8080
   selector:
     app: frontend
-  type: NodePort
+  type: ClusterIP
+status:
+  loadBalancer: {}
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: frontend-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80

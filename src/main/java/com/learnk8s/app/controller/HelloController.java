@@ -74,4 +74,11 @@ public class HelloController {
     }
 
 
+    @ResponseBody
+    @GetMapping(value = "/hello",produces="text/plain")
+    public String hello() {
+        return "hello:Jason";
+    }
+
+
 }
