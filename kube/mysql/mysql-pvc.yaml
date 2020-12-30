@@ -14,6 +14,8 @@ spec:
   persistentVolumeReclaimPolicy: Delete
   hostPath:
     path: "/data/mysql-data"
+#  local: # need create dir first
+#    path: /mnt/disks/ssd1
   nodeAffinity:
     required:
       nodeSelectorTerms:
