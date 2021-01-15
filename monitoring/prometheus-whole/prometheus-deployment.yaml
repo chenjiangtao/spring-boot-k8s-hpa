@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
       - name: prometheus
-        image: quay.io/prometheus/prometheus:v2.0.0
+        image: prom/prometheus:v2.0.0
         imagePullPolicy: IfNotPresent
         args:
           - '--storage.tsdb.retention=365d'
@@ -41,7 +41,7 @@ spec:
         volumeMounts:
         - name: config-volume
           mountPath: /etc/prometheus
-        - name: prometheus-storage
+        - name: prometheus-pvc
           mountPath: /prometheus
         - name: prometheus-rules
           mountPath: /etc/prometheus/rules
@@ -55,9 +55,9 @@ spec:
       - name: config-volume
         configMap:
           name: prometheus-config
-      - name: prometheus-storage
+      - name: prometheus-pvc
         persistentVolumeClaim:
-           claimName: prometheus-storage
+           claimName: prometheus-pvc
       - name: prometheus-rules
         configMap:
           name: prometheus-rules
