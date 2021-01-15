@@ -1,3 +1,6 @@
+# kubernetes oprator
+参考：https://operatorhub.io/
+
 # 先安装oprator
 ./install.sh v0.17.0
 - 或者手动执行
@@ -19,3 +22,5 @@ kubectl create -f https://operatorhub.io/install/redis-operator.yaml
 k create -f redis-cluster.yaml
   
 # redis-mater
+
+
