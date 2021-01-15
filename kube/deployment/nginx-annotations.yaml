@@ -60,7 +60,7 @@ spec:
   type: ClusterIP
 
 ---
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: cafe-ingress-with-annotations
@@ -79,8 +79,10 @@ spec:
         paths:
           - path: /tea
             backend:
-              serviceName: test
-              servicePort: 80
+              service:
+                name: test
+                port:
+                  number: 80
 #          - path: /coffee
 #            backend:
 #              serviceName: coffee-svc

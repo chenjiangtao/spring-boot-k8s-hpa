@@ -73,7 +73,7 @@ route:
     - GET
   strip_path: false
 ---
-apiVersion: extensions/v1beta1
+apiVersion: extensions/v1
 kind: Ingress
 metadata:
   name: backend-ingress
